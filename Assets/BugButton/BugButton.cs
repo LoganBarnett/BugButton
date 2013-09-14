@@ -27,23 +27,87 @@ using System.Collections;
 public class BugButton : MonoBehaviour {
 	public Texture bugIcon;
 	public Vector2 screenLocation;
+	public GUISkin bugSkin;
 	
 	Rect iconRect;
 	GUIContent iconContent;
 	
-	public void ConfigureRect() {
+	public string windowTitleText = "Report a Bug";
+	public string windowInstructionsText = "Tell us what happened.";
+	int windowId = 23987395; // if you have an ID that matches this, change it to something else.
+	Rect windowRect;
+	Rect windowTitleRect;
+	Rect windowInstructionsRect;
+	GUIStyle titleStyle;
+	GUIStyle instructionsStyle;
+	
+	bool bugReportOpen = false;
+	bool submitted = false;
+	bool submitting = false;
+	
+	// TODO: Automatically reinvoke when screen resolution changes
+	public void ConfigureRects() {
+		var skin = bugSkin ?? GUI.skin;
+//		var labelHeight = skin.label.CalcHeight(new GUIContent(" "), 10f);
+		
 		iconRect = new Rect(screenLocation.x, screenLocation.y, bugIcon.width, bugIcon.height);
 		iconContent = new GUIContent(bugIcon, "Report a bug");
+		
+		windowRect = new Rect(10f, 10f, Screen.width - 20f, Screen.height - 20f);
+		var currentHeight = 0f;
+		
+		titleStyle = skin.GetStyle("BugReportTitle");
+		var titleSize = titleStyle.CalcSize(new GUIContent(windowTitleText));
+		windowTitleRect = new Rect(windowRect.width / 2f, currentHeight + (titleSize.y * 2f), titleSize.x, titleSize.y);
+		currentHeight += windowTitleRect.y + windowTitleRect.height;
+		
+		instructionsStyle = skin.GetStyle("BugReportInstructions");
+		var instructionSize = instructionsStyle.CalcSize(new GUIContent(windowInstructionsText));
+		windowInstructionsRect = new Rect(windowRect.width / 2f, currentHeight, instructionSize.y, instructionSize.y);
+		currentHeight += windowInstructionsRect.y + windowInstructionsRect.height;
 	}
 	
 	void Start() {
-		ConfigureRect();
+		ConfigureRects();
 	}
 	
 	void OnGUI() {
-		// draw screen location
-		if(GUI.Button(iconRect, iconContent)) {
-			Debug.Log("Clicked!");
+		var originalSkin = GUI.skin;
+		if(bugSkin != null) GUI.skin = bugSkin;
+		
+		try {
+			if(bugReportOpen) {
+				GUI.Window(windowId, windowRect, DrawBugReportWindow, windowTitleText);
+			}
+			else {
+				if(GUI.Button(iconRect, iconContent)) {
+					bugReportOpen = true;
+				}
+			}
 		}
+		finally {
+			GUI.skin = originalSkin;
+		}
+	}
+	
+	void DrawBugReportWindow(int unusedWindowId) {
+		GUI.Label(windowTitleRect, windowTitleText, titleStyle);
+		GUI.Label(windowInstructionsRect, windowInstructionsText, instructionsStyle);
+//		GUI.TextArea(windowDescriptionRect, windowDescriptionText, descriptionStyle);
+		if(submitted) {
+//			GUI.Label(currentStatusRect, currentStatusText, currentStatusStyle);
+		}
+		else {
+			// submit
+//			GUI.Button();
+		}
+		// close
+//		GUI.Button();
+	}
+	
+	void CloseWindow() {
+		submitted = false;
+		submitting = false;
+		bugReportOpen = false;
 	}
 }
