@@ -20,30 +20,15 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-
+using UnityEditor;
 using UnityEngine;
-using System.Collections;
 
-public class BugButton : MonoBehaviour {
-	public Texture bugIcon;
-	public Vector2 screenLocation;
-	
-	Rect iconRect;
-	GUIContent iconContent;
-	
-	public void ConfigureRect() {
-		iconRect = new Rect(screenLocation.x, screenLocation.y, bugIcon.width, bugIcon.height);
-		iconContent = new GUIContent(bugIcon, "Report a bug");
-	}
-	
-	void Start() {
-		ConfigureRect();
-	}
-	
-	void OnGUI() {
-		// draw screen location
-		if(GUI.Button(iconRect, iconContent)) {
-			Debug.Log("Clicked!");
+[CustomEditor(typeof(BugButton))]
+public class BugButtonEditor : Editor {
+	void OnEnable() {
+		var bugButton = (BugButton)target;
+		if(bugButton.bugIcon == null) {
+			bugButton.bugIcon = (Texture)AssetDatabase.LoadAssetAtPath("Assets/BugButton/BugIcon.psd", typeof(Texture));
 		}
 	}
 }
