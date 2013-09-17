@@ -26,6 +26,7 @@ using System.Collections;
 
 public class BugButton : MonoBehaviour {
 	public Texture bugIcon;
+	public Texture[] progressImages;
 	public Vector2 screenLocation;
 	public GUISkin bugSkin;
 	
@@ -34,46 +35,79 @@ public class BugButton : MonoBehaviour {
 	
 	public string windowTitleText = "Report a Bug";
 	public string windowInstructionsText = "Tell us what happened.";
+	public string windowSubmittingText = "Submitting...";
+	public string windowSubmittedText = "Submitted! Thanks for your help!";
+	public string windowSubmitButtonText = "Submit";
+	public string windowCancelButtonText = "Cancel";
 	int windowId = 23987395; // if you have an ID that matches this, change it to something else.
+	string windowDescriptionText = "";
+	
 	Rect windowRect;
-	Rect windowTitleRect;
+//	Rect windowTitleRect;
 	Rect windowInstructionsRect;
-	GUIStyle titleStyle;
+	Rect windowDescriptionRect;
+	Rect windowSubmitButtonRect;
+	Rect windowCancelButtonRect;
+	Rect windowProgressRect;
+	
+//	GUIStyle titleStyle;
 	GUIStyle instructionsStyle;
+	GUIStyle descriptionStyle;
 	
 	bool bugReportOpen = false;
 	bool submitted = false;
 	bool submitting = false;
+	bool configured = false;
 	
 	// TODO: Automatically reinvoke when screen resolution changes
 	public void ConfigureRects() {
-		var skin = bugSkin ?? GUI.skin;
 //		var labelHeight = skin.label.CalcHeight(new GUIContent(" "), 10f);
 		
 		iconRect = new Rect(screenLocation.x, screenLocation.y, bugIcon.width, bugIcon.height);
-		iconContent = new GUIContent(bugIcon, "Report a bug");
+		iconContent = new GUIContent(bugIcon, windowTitleText);
 		
 		windowRect = new Rect(10f, 10f, Screen.width - 20f, Screen.height - 20f);
-		var currentHeight = 0f;
+		var currentHeight = (float)bugSkin.window.padding.top;
 		
-		titleStyle = skin.GetStyle("BugReportTitle");
-		var titleSize = titleStyle.CalcSize(new GUIContent(windowTitleText));
-		windowTitleRect = new Rect(windowRect.width / 2f, currentHeight + (titleSize.y * 2f), titleSize.x, titleSize.y);
-		currentHeight += windowTitleRect.y + windowTitleRect.height;
+//		titleStyle = bugSkin.GetStyle("BugReportTitle");
+//		var titleSize = titleStyle.CalcSize(new GUIContent(windowTitleText));
+//		windowTitleRect = new Rect(windowRect.width / 2f, currentHeight + (titleSize.y * 2f), titleSize.x, titleSize.y);
+//		currentHeight += windowTitleRect.y + windowTitleRect.height;
 		
-		instructionsStyle = skin.GetStyle("BugReportInstructions");
+		// TODO: Use the same method that description does to get its style
+		instructionsStyle = bugSkin.GetStyle("BugReportInstructions");
 		var instructionSize = instructionsStyle.CalcSize(new GUIContent(windowInstructionsText));
-		windowInstructionsRect = new Rect(windowRect.width / 2f, currentHeight, instructionSize.y, instructionSize.y);
+		// not sure what text alignment does if I have to position it as if it were the top-left corner
+		var instructionX = (windowRect.width / 2f) - (instructionSize.x / 2f);
+		windowInstructionsRect = new Rect(instructionX, currentHeight, instructionSize.x, instructionSize.y);
 		currentHeight += windowInstructionsRect.y + windowInstructionsRect.height;
+		
+		// TODO: submit button style like done for the description below
+		var submitButtonSize = bugSkin.button.CalcSize(new GUIContent(windowSubmitButtonText));
+		var bottomRowHeight = windowRect.height - ((float)bugSkin.window.padding.bottom + submitButtonSize.y);
+		var submitX = (windowRect.width / 2f) - submitButtonSize.x;
+		windowSubmitButtonRect = new Rect(submitX, bottomRowHeight, submitButtonSize.x, submitButtonSize.y);
+		
+		// TODO: submit button style like done for the description below
+		var cancelButtonSize = bugSkin.button.CalcSize(new GUIContent(windowCancelButtonText));
+		var cancelX = (windowRect.width / 2f);
+		windowCancelButtonRect = new Rect(cancelX, bottomRowHeight, cancelButtonSize.x, cancelButtonSize.y);
+		
+		// do the description last, since it occupies remaining space
+		descriptionStyle = bugSkin.GetStyle("BugReportDescription");
+		if(string.IsNullOrEmpty(descriptionStyle.name)) descriptionStyle = bugSkin.textArea;
+		windowDescriptionRect = new Rect(10f, currentHeight, windowRect.width - 20f, bottomRowHeight - currentHeight);
+		configured = true;
 	}
 	
 	void Start() {
-		ConfigureRects();
 	}
 	
 	void OnGUI() {
+		if(bugSkin == null) bugSkin = GUI.skin;
 		var originalSkin = GUI.skin;
-		if(bugSkin != null) GUI.skin = bugSkin;
+		
+		if(!configured) ConfigureRects();
 		
 		try {
 			if(bugReportOpen) {
@@ -91,18 +125,22 @@ public class BugButton : MonoBehaviour {
 	}
 	
 	void DrawBugReportWindow(int unusedWindowId) {
-		GUI.Label(windowTitleRect, windowTitleText, titleStyle);
+//		GUI.Label(windowTitleRect, windowTitleText, titleStyle);
 		GUI.Label(windowInstructionsRect, windowInstructionsText, instructionsStyle);
-//		GUI.TextArea(windowDescriptionRect, windowDescriptionText, descriptionStyle);
+		windowDescriptionText = GUI.TextArea(windowDescriptionRect, windowDescriptionText, descriptionStyle);
 		if(submitted) {
 //			GUI.Label(currentStatusRect, currentStatusText, currentStatusStyle);
 		}
 		else {
-			// submit
-//			GUI.Button();
+			if(GUI.Button(windowSubmitButtonRect, windowSubmitButtonText)) {
+				Debug.Log("Submit clicked!");
+			}
 		}
 		// close
-//		GUI.Button();
+		if(GUI.Button(windowCancelButtonRect, windowCancelButtonText)) {
+			Debug.Log("Cancel clicked!");
+			bugReportOpen = false;
+		}
 	}
 	
 	void CloseWindow() {

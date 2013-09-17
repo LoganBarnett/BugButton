@@ -30,5 +30,21 @@ public class BugButtonEditor : Editor {
 		if(bugButton.bugIcon == null) {
 			bugButton.bugIcon = (Texture)AssetDatabase.LoadAssetAtPath("Assets/BugButton/BugIcon.psd", typeof(Texture));
 		}
+		
+		if(bugButton.progressImages == null || bugButton.progressImages.Length == 0) {
+			var progress1 = (Texture)AssetDatabase.LoadAssetAtPath("Assets/BugButton/Progress1.psd", typeof(Texture));
+			var progress2 = (Texture)AssetDatabase.LoadAssetAtPath("Assets/BugButton/Progress2.psd", typeof(Texture));
+			var progress3 = (Texture)AssetDatabase.LoadAssetAtPath("Assets/BugButton/Progress3.psd", typeof(Texture));
+			var progress4 = (Texture)AssetDatabase.LoadAssetAtPath("Assets/BugButton/Progress4.psd", typeof(Texture));
+			
+			var progressTextures = new [] {progress1, progress2, progress3, progress4};
+			
+			bugButton.progressImages = progressTextures;
+		}
+		
+		if(bugButton.bugSkin == null) {
+			var skin = (GUISkin)AssetDatabase.LoadAssetAtPath("Assets/BugButton/BugSkin.guiskin", typeof(GUISkin));
+			bugButton.bugSkin = skin;
+		}
 	}
 }
